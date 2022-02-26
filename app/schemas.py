@@ -4,6 +4,18 @@ from datetime import datetime
 
 
 # data schema
+class CreateUser(BaseModel):
+    email: EmailStr
+    password: str
+
+class CreateUserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
 class PostBase(BaseModel):
     title: str
     content: str
@@ -15,18 +27,8 @@ class PostCreate(PostBase):
 class PostResponse(PostBase):
     id: int
     created_at: datetime
-
-    class Config:
-        orm_mode = True
-
-class CreateUser(BaseModel):
-    email: EmailStr
-    password: str
-
-class CreateUserResponse(BaseModel):
-    id: int
-    email: EmailStr
-    created_at: datetime
+    owner_id: int
+    owner: CreateUserResponse
 
     class Config:
         orm_mode = True
