@@ -1,4 +1,3 @@
-from lib2to3.pgen2.token import OP
 from fastapi import (APIRouter,
                     Response,
                     HTTPException,
@@ -6,6 +5,7 @@ from fastapi import (APIRouter,
                     Depends)
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 import models
 import schemas
 import oauth2
@@ -31,14 +31,9 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db),
     return new_post
 
 
-@router.get("/all", response_model=List[schemas.PostResponse])
+@router.get("/all", response_model=List[schemas.PostVoteResponse])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
                 limit: int = 5, skip: int = 0, search: Optional[str] = ""):
-    
-    all_posts = db.query(models.Post).filter(
-        models.Post.title.contains(search)
-    ).limit(limit).offset(skip).all()
-    
     """
     # Posts only for specific logged in user
     all_posts = db.query(models.Post).filter(
@@ -46,13 +41,24 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
     ).all()
     """
     
-    return all_posts
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True
+    ).group_by(models.Post.id).filter(
+        models.Post.title.contains(search)
+    ).limit(limit).offset(skip).all()
+
+    return posts
 
 
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostVoteResponse)
 def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     """ Return specific id post """
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")
+    ).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True
+    ).group_by(models.Post.id
+    ).filter(models.Post.id == id).first()
+
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id: {id} was not found")
