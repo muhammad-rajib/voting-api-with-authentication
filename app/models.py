@@ -1,6 +1,5 @@
-from ast import For
 from tkinter import CASCADE
-from database import Base
+from app.database import Base
 from sqlalchemy import (Column, ForeignKey, 
                         Integer, 
                         String, 

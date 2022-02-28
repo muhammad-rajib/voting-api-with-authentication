@@ -1,15 +1,12 @@
-from ctypes.wintypes import tagRECT
-from statistics import mode
-from webbrowser import get
 from fastapi import (APIRouter,
                     HTTPException,
                     status,
                     Depends)
 from sqlalchemy.orm import Session
-import models
-import schemas
-import utils
-from database import get_db
+from app import models
+from app import schemas
+from app import utils
+from app.database import get_db
 
 
 router = APIRouter(
