@@ -1,4 +1,3 @@
-from imp import load_compiled
 from pydantic import BaseSettings
 from dotenv import load_dotenv
 
